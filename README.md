@@ -1,2 +1,3 @@
-# gawse
-Go rewrite of assume
+# Ume
+
+Go rewrite of awsume
