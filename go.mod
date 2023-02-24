@@ -1,4 +1,4 @@
-module gawse
+module ume
 
 go 1.20
 
@@ -15,4 +15,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.14.3 // indirect
 	github.com/aws/aws-sdk-go-v2/service/sts v1.18.4 // indirect
 	github.com/aws/smithy-go v1.13.5 // indirect
+	github.com/mattn/go-runewidth v0.0.9 // indirect
+	github.com/olekukonko/tablewriter v0.0.5 // indirect
+	gopkg.in/ini.v1 v1.67.0 // indirect
 )
