@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 	"strings"
@@ -38,10 +39,7 @@ func getConfigs() []config.SharedConfig {
 	return configs
 }
 
-func main() {
-	// Parse arguments
-
-	// format_aws_profiles
+func prettyPrintConfigs() {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.SetBorder(false)
 	table.SetColumnSeparator("")
@@ -77,5 +75,13 @@ func main() {
 	}
 
 	table.Render()
+}
 
+func main() {
+	listProfiles := flag.Bool("l", false, "List profiles")
+	flag.Parse()
+
+	if *listProfiles {
+		prettyPrintConfigs()
+	}
 }
