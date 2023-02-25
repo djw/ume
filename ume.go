@@ -94,8 +94,8 @@ func prettyPrintSharedConfigs() {
 	table.Render()
 }
 
-func exportToWrapper(roleSession sts.AssumeRoleOutput, profile string) {
-	fmt.Printf("%s %s %s %s %s %s %s %s\n", "Awsume", *roleSession.Credentials.AccessKeyId, *roleSession.Credentials.SecretAccessKey, *roleSession.Credentials.SessionToken, "eu-west-1", "None", profile, roleSession.Credentials.Expiration.Format("2006-01-02T15:04:05"))
+func exportToWrapper(roleSession sts.AssumeRoleOutput, profile string, region string) {
+	fmt.Printf("%s %s %s %s %s %s %s %s\n", "Awsume", *roleSession.Credentials.AccessKeyId, *roleSession.Credentials.SecretAccessKey, *roleSession.Credentials.SessionToken, region, "None", profile, roleSession.Credentials.Expiration.Format("2006-01-02T15:04:05"))
 }
 
 func main() {
@@ -137,7 +137,7 @@ func main() {
 		greenColour := "\033[32m"
 		resetColour := "\033[0m"
 		fmt.Fprintf(os.Stderr, "%s[%s] Role credentials will expire %s%s\n", greenColour, profileName, *roleSession.Credentials.Expiration, resetColour)
-		exportToWrapper(*roleSession, profileName)
+		exportToWrapper(*roleSession, profileName, c.Region)
 	}
 
 }
