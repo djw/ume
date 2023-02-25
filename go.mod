@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/aws/aws-sdk-go-v2 v1.17.5
 	github.com/aws/aws-sdk-go-v2/config v1.18.14
-	github.com/aws/aws-sdk-go-v2/service/sts v1.18.4
+	github.com/aws/aws-sdk-go-v2/service/sts v1.18.5
 	github.com/olekukonko/tablewriter v0.0.5
 	gopkg.in/ini.v1 v1.67.0
 )
