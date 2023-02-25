@@ -99,10 +99,14 @@ func exportToWrapper(roleSession sts.AssumeRoleOutput, profile string) {
 
 func main() {
 	listProfiles := flag.Bool("l", false, "List profiles")
+	unset := flag.Bool("u", false, "Unset AWS environment variables")
 	flag.Parse()
 
 	if *listProfiles {
 		prettyPrintSharedConfigs()
+	} else if *unset {
+		fmt.Println("Unset")
+		os.Exit(0)
 	} else if flag.NArg() == 1 {
 		profileName := flag.Arg(0)
 
