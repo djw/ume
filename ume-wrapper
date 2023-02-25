@@ -1,0 +1,183 @@
+#!/bin/bash
+
+#UME_FLAG - what ume-backend told the shell to do
+#UME_n - the data from ume-backend
+
+[[ "${BASH_SOURCE[0]}" != "${0}" ]] || >&2 echo "Warning: the ume shell script is not being sourced"
+
+UME_OUTPUT=$(ume-backend "$@")
+UME_STATUS=$?
+read UME_FLAG UME_1 UME_2 UME_3 UME_4 UME_5 UME_6 UME_7 <<< $(echo $UME_OUTPUT)
+
+# remove carraige return
+UME_FLAG=$(echo "$UME_FLAG" | tr -d '\r')
+
+if [ "$UME_FLAG" = "usage:" ]; then
+  echo $UME_OUTPUT
+
+
+elif [ "$UME_FLAG" = "Version" ]; then
+  echo $UME_OUTPUT
+
+
+elif [ "$UME_FLAG" = "Listing..." ]; then
+  echo $UME_OUTPUT
+
+
+elif [ "$UME_FLAG" = "Auto" ]; then
+  unset AWS_ACCESS_KEY_ID
+  unset AWS_SECRET_ACCESS_KEY
+  unset AWS_SESSION_TOKEN
+  unset AWS_REGION
+  unset AWS_DEFAULT_REGION
+  unset AWS_PROFILE
+  unset AWS_DEFAULT_PROFILE
+  unset UME_EXPIRATION
+  unset UME_PROFILE
+  unset UME_COMMAND
+
+  export UME_COMMAND="$@"
+  export AWS_PROFILE=${UME_1}
+  export AWS_DEFAULT_PROFILE=${UME_1}
+
+  if [ ! "${UME_2}" = "None" ]; then
+    export AWS_REGION=${UME_2}
+    export AWS_DEFAULT_REGION=${UME_2}
+  fi
+  if [ ! "${UME_3}" = "None" ]; then
+    export UME_PROFILE=${UME_3}
+  fi
+
+  #run the background autoawsume process
+  autoawsume & disown
+
+
+elif [ "$UME_FLAG" = "Unset" ]; then
+  unset AWS_ACCESS_KEY_ID
+  unset AWS_SECRET_ACCESS_KEY
+  unset AWS_SESSION_TOKEN
+  unset AWS_REGION
+  unset AWS_DEFAULT_REGION
+  unset AWS_PROFILE
+  unset AWS_DEFAULT_PROFILE
+  unset UME_EXPIRATION
+  unset UME_PROFILE
+  unset UME_COMMAND
+
+  for UME_var in "$@"
+  do
+    if [[ "$UME_var" == "-s"* ]]; then
+      echo unset AWS_ACCESS_KEY_ID
+      echo unset AWS_SECRET_ACCESS_KEY
+      echo unset AWS_SESSION_TOKEN
+      echo unset AWS_REGION
+      echo unset AWS_DEFAULT_REGION
+      echo unset AWS_PROFILE
+      echo unset AWS_DEFAULT_PROFILE
+      echo unset UME_EXPIRATION
+      echo unset UME_PROFILE
+      echo unset UME_COMMAND
+    fi
+  done
+  return
+
+
+elif [ "$UME_FLAG" = "Kill" ]; then
+  unset AWS_ACCESS_KEY_ID
+  unset AWS_SECRET_ACCESS_KEY
+  unset AWS_SESSION_TOKEN
+  unset AWS_REGION
+  unset AWS_DEFAULT_REGION
+  unset AWS_PROFILE
+  unset AWS_DEFAULT_PROFILE
+  unset UME_EXPIRATION
+  unset UME_PROFILE
+  unset UME_COMMAND
+  return
+
+
+elif [ "$UME_FLAG" = "Stop" ]; then
+  if [ "auto-refresh-${UME_1}" == "$AWS_PROFILE" ]; then
+    unset AWS_ACCESS_KEY_ID
+    unset AWS_SECRET_ACCESS_KEY
+    unset AWS_SESSION_TOKEN
+    unset AWS_REGION
+    unset AWS_DEFAULT_REGION
+    unset AWS_PROFILE
+    unset AWS_DEFAULT_PROFILE
+    unset UME_EXPIRATION
+    unset UME_PROFILE
+    unset UME_COMMAND
+  fi
+  return
+
+
+elif [ "$UME_FLAG" = "Awsume" ]; then
+  unset AWS_ACCESS_KEY_ID
+  unset AWS_SECRET_ACCESS_KEY
+  unset AWS_SESSION_TOKEN
+  unset AWS_REGION
+  unset AWS_DEFAULT_REGION
+  unset AWS_PROFILE
+  unset AWS_DEFAULT_PROFILE
+  unset UME_EXPIRATION
+  unset UME_PROFILE
+  unset UME_COMMAND
+
+  export UME_COMMAND="$@"
+
+  if [ ! "${UME_1}" = "None" ]; then
+    export AWS_ACCESS_KEY_ID=${UME_1}
+  fi
+  if [ ! "${UME_2}" = "None" ]; then
+    export AWS_SECRET_ACCESS_KEY=${UME_2}
+  fi
+  if [ ! "${UME_3}" = "None" ]; then
+    export AWS_SESSION_TOKEN=${UME_3}
+  fi
+  if [ ! "${UME_4}" = "None" ]; then
+    export AWS_REGION=${UME_4}
+    export AWS_DEFAULT_REGION=${UME_4}
+  fi
+  if [ ! "${UME_5}" = "None" ]; then
+    export UME_PROFILE=${UME_5}
+  fi
+  if [ ! "${UME_6}" = "None" ]; then
+    export AWS_PROFILE=${UME_6}
+    export AWS_DEFAULT_PROFILE=${UME_6}
+  fi
+  if [ ! "${UME_7}" = "None" ]; then
+    export UME_EXPIRATION=${UME_7}
+  fi
+
+  for UME_var in "$@"
+  do
+    if [[ "$UME_var" == "-s"* ]]; then
+      if [ ! "${UME_1}" = "None" ]; then
+        echo export AWS_ACCESS_KEY_ID=${UME_1}
+      fi
+      if [ ! "${UME_2}" = "None" ]; then
+        echo export AWS_SECRET_ACCESS_KEY=${UME_2}
+      fi
+      if [ ! "${UME_3}" = "None" ]; then
+        echo export AWS_SESSION_TOKEN=${UME_3}
+      fi
+      if [ ! "${UME_4}" = "None" ]; then
+        echo export AWS_REGION=${UME_4}
+        echo export AWS_DEFAULT_REGION=${UME_4}
+      fi
+      if [ ! "${UME_5}" = "None" ]; then
+        echo export UME_PROFILE=${UME_5}
+      fi
+      if [ ! "${UME_6}" = "None" ]; then
+        echo export AWS_PROFILE=${UME_6}
+        echo export AWS_DEFAULT_PROFILE=${UME_6}
+      fi
+      if [ ! "${UME_7}" = "None" ]; then
+        echo export UME_EXPIRATION=${UME_7}
+      fi
+    fi
+  done
+fi
+
+return $UME_STATUS
