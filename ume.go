@@ -67,8 +67,10 @@ func prettyPrintSharedConfigs() {
 	for _, c := range getSharedConfigs() {
 		var profile_type string
 		var source_profile string
+		profile_account_id := "Unavailable"
 		if c.RoleARN != "" {
 			profile_type = "Role"
+			profile_account_id = strings.Split(c.RoleARN, ":")[4]
 			if c.SourceProfileName != "" {
 				source_profile = c.SourceProfileName
 			} else {
@@ -86,7 +88,6 @@ func prettyPrintSharedConfigs() {
 			mfa_needed = "No"
 		}
 
-		profile_account_id := "Unavailable" // TODO
 		table.Append([]string{c.Profile, profile_type, source_profile, mfa_needed, c.Region, profile_account_id})
 	}
 
