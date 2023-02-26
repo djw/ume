@@ -15,14 +15,14 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-func listConfigNames() []string {
+func listProfileNames() []string {
 	config, err := ini.Load(config.DefaultSharedConfigFilename())
 	if err != nil {
 		log.Fatal(err)
 	}
 	var profiles []string
 	for _, v := range config.Sections() {
-		if v.Name() == "DEFAULT" {
+		if !strings.HasPrefix(v.Name(), "profile ") {
 			continue
 		}
 		profiles = append(profiles, strings.Replace(v.Name(), "profile ", "", 1))
@@ -48,7 +48,7 @@ func getSharedConfig(profile string) config.SharedConfig {
 
 func getSharedConfigs() []config.SharedConfig {
 	var configs []config.SharedConfig
-	for _, profile := range listConfigNames() {
+	for _, profile := range listProfileNames() {
 		configs = append(configs, getSharedConfig(profile))
 	}
 	return configs
@@ -76,6 +76,10 @@ func prettyPrintSharedConfigs() {
 			} else {
 				source_profile = "None"
 			}
+		} else if c.SSOSessionName != "" {
+			profile_type = "SSO"
+			profile_account_id = c.SSOAccountID
+			source_profile = c.SSOSessionName
 		} else {
 			profile_type = "User"
 			source_profile = "None"
