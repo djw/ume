@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"github.com/aws/aws-sdk-go-v2/service/sts/types"
 	"github.com/olekukonko/tablewriter"
 	"gopkg.in/ini.v1"
 )
@@ -98,8 +99,8 @@ func prettyPrintSharedConfigs() {
 	table.Render()
 }
 
-func exportToWrapper(roleSession sts.AssumeRoleOutput, profile string, region string) {
-	fmt.Printf("%s %s %s %s %s %s %s %s\n", "Awsume", *roleSession.Credentials.AccessKeyId, *roleSession.Credentials.SecretAccessKey, *roleSession.Credentials.SessionToken, region, "None", profile, roleSession.Credentials.Expiration.Format("2006-01-02T15:04:05"))
+func exportToWrapper(credentials types.Credentials, profile string, region string) {
+	fmt.Printf("%s %s %s %s %s %s %s %s\n", "Awsume", *credentials.AccessKeyId, *credentials.SecretAccessKey, *credentials.SessionToken, region, "None", profile, credentials.Expiration.Format("2006-01-02T15:04:05"))
 }
 
 func main() {
@@ -117,31 +118,33 @@ func main() {
 
 		c := getSharedConfig(profileName)
 
+		var credentials types.Credentials
 		targetProfileName := profileName
 		targetProfile := c
 
 		if targetProfile.SourceProfileName != "" {
 			targetProfileName = targetProfile.SourceProfileName
 			targetProfile = getSharedConfig(targetProfileName)
-		}
 
-		config := getConfig(targetProfileName)
-		client := sts.NewFromConfig(config)
+			config := getConfig(targetProfileName)
+			client := sts.NewFromConfig(config)
 
-		sessionName := "ume-session"
-		roleSession, err := client.AssumeRole(context.TODO(), &sts.AssumeRoleInput{
-			RoleArn:         &c.RoleARN,
-			RoleSessionName: &sessionName,
-		})
+			sessionName := "ume-session"
+			roleSession, err := client.AssumeRole(context.TODO(), &sts.AssumeRoleInput{
+				RoleArn:         &c.RoleARN,
+				RoleSessionName: &sessionName,
+			})
 
-		if err != nil {
-			log.Fatal(err)
+			if err != nil {
+				log.Fatal(err)
+			}
+			credentials = *roleSession.Credentials
 		}
 
 		greenColour := "\033[32m"
 		resetColour := "\033[0m"
-		fmt.Fprintf(os.Stderr, "%s[%s] Role credentials will expire %s%s\n", greenColour, profileName, *roleSession.Credentials.Expiration, resetColour)
-		exportToWrapper(*roleSession, profileName, c.Region)
+		fmt.Fprintf(os.Stderr, "%s[%s] Role credentials will expire %s%s\n", greenColour, profileName, *credentials.Expiration, resetColour)
+		exportToWrapper(credentials, profileName, c.Region)
 	}
 
 }
