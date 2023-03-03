@@ -55,6 +55,15 @@ func getSharedConfigs() []config.SharedConfig {
 	return configs
 }
 
+func convertStsToGenericCredentials(credentials types.Credentials) aws.Credentials {
+	return aws.Credentials{
+		AccessKeyID:     *credentials.AccessKeyId,
+		SecretAccessKey: *credentials.SecretAccessKey,
+		SessionToken:    *credentials.SessionToken,
+		Expires:         *credentials.Expiration,
+	}
+}
+
 func prettyPrintSharedConfigs() {
 	fmt.Println("Listing...")
 	table := tablewriter.NewWriter(os.Stdout)
@@ -99,8 +108,21 @@ func prettyPrintSharedConfigs() {
 	table.Render()
 }
 
-func exportToWrapper(credentials types.Credentials, profile string, region string) {
-	fmt.Printf("%s %s %s %s %s %s %s %s\n", "Awsume", *credentials.AccessKeyId, *credentials.SecretAccessKey, *credentials.SessionToken, region, "None", profile, credentials.Expiration.Format("2006-01-02T15:04:05"))
+func exportToWrapper(credentials aws.Credentials, profile string, region string) {
+	if region == "" || profile == "" {
+		log.Fatal("Region or profile not set")
+	}
+	sessionToken := credentials.SessionToken
+	if sessionToken == "" {
+		sessionToken = "None"
+	}
+	var expires string
+	if credentials.CanExpire {
+		expires = credentials.Expires.Format("2006-01-02T15:04:05")
+	} else {
+		expires = "None"
+	}
+	fmt.Printf("%s %s %s %s %s %s %s %s\n", "Awsume", credentials.AccessKeyID, credentials.SecretAccessKey, sessionToken, region, "None", profile, expires)
 }
 
 func main() {
@@ -118,7 +140,7 @@ func main() {
 
 		c := getSharedConfig(profileName)
 
-		var credentials types.Credentials
+		var credentials aws.Credentials
 		targetProfileName := profileName
 		targetProfile := c
 
@@ -138,13 +160,16 @@ func main() {
 			if err != nil {
 				log.Fatal(err)
 			}
-			credentials = *roleSession.Credentials
+
+			credentials = convertStsToGenericCredentials(*roleSession.Credentials)
+		} else {
+			credentials = targetProfile.Credentials
 		}
 
 		greenColour := "\033[32m"
 		resetColour := "\033[0m"
-		fmt.Fprintf(os.Stderr, "%s[%s] Role credentials will expire %s%s\n", greenColour, profileName, *credentials.Expiration, resetColour)
-		exportToWrapper(credentials, profileName, c.Region)
+		exportToWrapper(credentials, profileName, targetProfile.Region)
+		fmt.Fprintf(os.Stderr, "%s[%s] Role credentials will expire %s%s\n", greenColour, profileName, credentials.Expires, resetColour)
 	}
 
 }
