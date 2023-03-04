@@ -2,14 +2,18 @@ package main
 
 import (
 	"context"
+	"crypto/sha1"
 	"flag"
 	"fmt"
 	"log"
 	"os"
+	"path"
 	"strings"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/credentials/ssocreds"
+	"github.com/aws/aws-sdk-go-v2/service/sso"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"github.com/aws/aws-sdk-go-v2/service/sts/types"
 	"github.com/olekukonko/tablewriter"
@@ -108,6 +112,33 @@ func prettyPrintSharedConfigs() {
 	table.Render()
 }
 
+func fetchSSOCredentials(profile config.SharedConfig) aws.Credentials {
+	cfg, err := config.LoadDefaultConfig(context.TODO(),
+		config.WithSharedConfigProfile(profile.Profile),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client := sso.NewFromConfig(cfg)
+
+	var provider aws.CredentialsProvider
+	provider = ssocreds.New(client, profile.SSOAccountID, profile.SSORoleName, profile.SSOSession.SSOStartURL, func(options *ssocreds.Options) {
+		// The standard appears to be to name the cache file using the sha1 of the start url.
+		// However it falls back to using the session name, which is how the AWS CLI behaves.
+		// TODO Support both, or manage all credentials ourselves
+		data := []byte(profile.SSOSessionName)
+		path := path.Join(config.DefaultSharedConfigFilename(), "../sso/cache", fmt.Sprintf("%x.json", sha1.Sum(data)))
+		options.CachedTokenFilepath = path
+	})
+	provider = aws.NewCredentialsCache(provider)
+	creds, err := provider.Retrieve(context.TODO())
+	if err != nil {
+		log.Fatal(err)
+	}
+	return creds
+}
+
 func exportToWrapper(credentials aws.Credentials, profile string, region string) {
 	if region == "" || profile == "" {
 		log.Fatal("Region or profile not set")
@@ -162,6 +193,8 @@ func main() {
 			}
 
 			credentials = convertStsToGenericCredentials(*roleSession.Credentials)
+		} else if targetProfile.SSOSessionName != "" {
+			credentials = fetchSSOCredentials(targetProfile)
 		} else {
 			credentials = targetProfile.Credentials
 		}
