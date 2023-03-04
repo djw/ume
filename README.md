@@ -1,6 +1,6 @@
 # Ume
 
-Minimal Go rewrite of [awsume](https://awsu.me).
+Minimal Go rewrite of [awsume](https://awsu.me), but with SSO support
 
 ## Usage
 
